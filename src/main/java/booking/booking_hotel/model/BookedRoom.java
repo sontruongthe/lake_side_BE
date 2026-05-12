@@ -28,6 +28,9 @@ public class BookedRoom {
     @Column(name ="guest_Email")
     private  String guestEmail;
 
+    @Column(name ="guest_phone")
+    private String guestPhone;
+
     @Column(name ="adults")
     private int numOfAdults;
 
@@ -86,6 +89,14 @@ public class BookedRoom {
 
     public void setGuestEmail(String guestEmail) {
         this.guestEmail = guestEmail;
+    }
+
+    public String getGuestPhone() {
+        return guestPhone;
+    }
+
+    public void setGuestPhone(String guestPhone) {
+        this.guestPhone = guestPhone;
     }
 
     public int getNumOfChildren() {

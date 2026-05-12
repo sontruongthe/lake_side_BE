@@ -46,12 +46,19 @@ public class BookingController {
     }
 
     @GetMapping("/confirmation/{confirmationCode}")
-    public ResponseEntity<BookingResponse> getBookingByConfirmationCode(@PathVariable String confirmationCode) {
+    public ResponseEntity<?> getBookingByConfirmationCode(@PathVariable String confirmationCode) {
         try {
             BookedRoom booking = bookingService.findByBookingConfimationCode(confirmationCode);
+            if (booking == null || booking.getRoom() == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Khong co ma phong");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
             return ResponseEntity.ok(getBookingResponse(booking));
         } catch (ResourceNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Khong co ma phong");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 

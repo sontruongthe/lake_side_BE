@@ -1,6 +1,7 @@
 package booking.booking_hotel.service;
 
 import booking.booking_hotel.config.TwilioConfig;
+import booking.booking_hotel.response.SMSResponse;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,10 @@ public class SmsService {
         return sendSms(phoneNumber, message);
     }
 
-    public boolean sendBookingConfirmation(String phoneNumber, String guestName,
-                           String roomType, String bookingDate,
-                           String checkIn, String checkOut,
-                           String confirmCode) {
-        String resolvedBookingDate = isBlank(bookingDate)
+    public boolean sendBookingConfirmation(SMSResponse body) {
+        String resolvedBookingDate = isBlank(body.getBookingDate())
             ? LocalDate.now().format(BOOKING_DATE_FORMAT)
-            : bookingDate;
+            : body.getBookingDate();
 
         String message = String.format(
             "LAKESIDE HOTEL\n"
@@ -41,9 +39,9 @@ public class SmsService {
                 + "Tra phong: %s\n"
                 + "Ma xac nhan: %s\n"
                 + "Cam on ban da dat phong!",
-            guestName, roomType, resolvedBookingDate, checkIn, checkOut, confirmCode
+            body.getGuestName(), body.getRoomType(), resolvedBookingDate, body.getCheckIn(), body.getCheckOut(), body.getConfirmCode()
         );
-        return sendSms(phoneNumber, message);
+        return sendSms(body.getPhone(), message);
     }
 
     public boolean sendBookingCancellation(String phoneNumber,

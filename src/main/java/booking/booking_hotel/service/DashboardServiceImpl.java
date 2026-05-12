@@ -37,9 +37,13 @@ public class DashboardServiceImpl implements DashboardService {
         // Tính tổng doanh thu
         List<BookedRoom> allBookings = bookingRepository.findAll();
         BigDecimal totalRevenue = BigDecimal.ZERO;
+        LocalDate today = LocalDate.now();
         
         for (BookedRoom booking : allBookings) {
-            if (booking.getRoom() != null && booking.getRoom().getRoomPrice() != null) {
+            if (isPaidBooking(booking)
+                    && booking.getRoom() != null
+                    && booking.getRoom().getRoomPrice() != null
+                    && !booking.getCheckInDate().isAfter(today)) {
                 long days = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckoutDate());
                 if (days <= 0) days = 1;
                 BigDecimal bookingRevenue = booking.getRoom().getRoomPrice().multiply(BigDecimal.valueOf(days));
@@ -50,7 +54,6 @@ public class DashboardServiceImpl implements DashboardService {
         
         // Tính tỷ lệ lấp đầy phòng HÔM NAY (%)
         // Công thức: (Số phòng có khách hôm nay / Tổng số phòng) × 100
-        LocalDate today = LocalDate.now();
         List<Room> allRooms = roomRepository.findAll();
         
         // Đếm số phòng có booking đang active hôm nay
@@ -77,6 +80,7 @@ public class DashboardServiceImpl implements DashboardService {
     public Map<String, Object> getMonthlyRevenue(int year) {
         Map<String, Object> result = new HashMap<>();
         List<BookedRoom> bookings = bookingRepository.findAll();
+        LocalDate today = LocalDate.now();
         
         // Tạo map với 12 tháng
         Map<Integer, BigDecimal> monthlyData = new LinkedHashMap<>();
@@ -85,7 +89,10 @@ public class DashboardServiceImpl implements DashboardService {
         }
         
         for (BookedRoom booking : bookings) {
-            if (booking.getCheckInDate().getYear() == year && booking.getRoom() != null) {
+            if (isPaidBooking(booking)
+                    && booking.getCheckInDate().getYear() == year
+                    && booking.getRoom() != null
+                    && !booking.getCheckInDate().isAfter(today)) {
                 int month = booking.getCheckInDate().getMonthValue();
                 long days = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckoutDate());
                 if (days <= 0) days = 1;
@@ -165,5 +172,9 @@ public class DashboardServiceImpl implements DashboardService {
                     return bookingInfo;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private boolean isPaidBooking(BookedRoom booking) {
+        return booking != null && "PAID".equalsIgnoreCase(booking.getPaymentStatus());
     }
 }

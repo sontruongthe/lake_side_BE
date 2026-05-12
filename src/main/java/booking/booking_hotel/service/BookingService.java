@@ -8,7 +8,6 @@ import booking.booking_hotel.repository.BookingRepository;
 import booking.booking_hotel.repository.PaymentRepository;
 import booking.booking_hotel.repository.ReviewRepository;
 import booking.booking_hotel.repository.RoomRepository;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,7 +66,7 @@ public class BookingService implements IBookingService {
             room.addBooking(bookingRequest);  // Set isBooked = true trong Room entity
             bookingRepository.save(bookingRequest);  // Save booking vào database
             roomRepository.save(room);  // QUAN TRỌNG: Save room để update isBooked vào database!
-            // 👉 TẠO PAYMENT
+            //  TẠO PAYMENT
             Payment payment = new Payment();
             payment.setBookedRoom(bookingRequest);
             payment.setPaymentMethod("SEPAY");

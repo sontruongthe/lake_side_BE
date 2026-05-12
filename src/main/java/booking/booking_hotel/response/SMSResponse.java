@@ -1,19 +1,24 @@
 package booking.booking_hotel.response;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
+@Getter
+@Setter
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class SMSResponse {
+   private String bookingDate;
     private String phone;
     private String guestName;
     private String roomType;
-    private BigDecimal price;
     private String checkIn;
     private String checkOut;
     private String confirmCode;
+
+
+
 }
 

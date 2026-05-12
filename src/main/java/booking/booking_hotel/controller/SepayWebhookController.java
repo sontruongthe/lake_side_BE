@@ -4,6 +4,8 @@ import booking.booking_hotel.model.BookedRoom;
 import booking.booking_hotel.model.Payment;
 import booking.booking_hotel.repository.BookingRepository;
 import booking.booking_hotel.repository.PaymentRepository;
+import booking.booking_hotel.response.SMSResponse;
+import booking.booking_hotel.service.SmsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,11 +26,14 @@ public class SepayWebhookController {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final SmsService smsService;
 
     public SepayWebhookController(PaymentRepository paymentRepository,
-                                  BookingRepository bookingRepository) {
+                                  BookingRepository bookingRepository,
+                                  SmsService smsService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.smsService = smsService;
     }
 
     @PostMapping("/webhook")
@@ -70,6 +76,19 @@ public class SepayWebhookController {
         BookedRoom booking = payment.getBookedRoom();
         booking.setPaymentStatus("PAID");
         bookingRepository.save(booking);
+
+        // Send SMS only after payment success and only when customer phone exists.
+        if (booking.getGuestPhone() != null && !booking.getGuestPhone().isBlank()) {
+            SMSResponse smsBody = new SMSResponse();
+            smsBody.setPhone(booking.getGuestPhone());
+            smsBody.setBookingDate(String.valueOf(LocalDateTime.now()));
+            smsBody.setCheckIn(String.valueOf(booking.getCheckInDate()));
+            smsBody.setCheckOut(String.valueOf(booking.getCheckoutDate()));
+            smsBody.setRoomType(booking.getRoom() != null ? booking.getRoom().getRoomType() : "N/A");
+            smsBody.setConfirmCode(booking.getBookingConfirmationCode());
+            smsBody.setGuestName(booking.getGuestFullName());
+            smsService.sendBookingConfirmation(smsBody);
+        }
 
         return ResponseEntity.ok("OK");
     }
